@@ -76,10 +76,13 @@
 extern "C" {
 #endif
 
+struct CIECAM02color forwardCIECAM02(struct CIECAM02color theColor, struct CIECAM02vc theVC, int theVerbose, FILE *theFile);
+struct CIECAM02color inverseCIECAM02(struct CIECAM02color theColor, struct CIECAM02vc theVC, int theVerbose, FILE *theFile) {
+
 /**
  * Forward transform from XYZ to CIECAM02 JCh.
  */
-void xyz2jch_ciecam02( double *J, double *C, double *h,
+static void xyz2jch_ciecam02( double *J, double *C, double *h,
                        double x, double y, double z,
                        double xw, double yw, double zw,
                        double yb, double la,
@@ -88,7 +91,7 @@ void xyz2jch_ciecam02( double *J, double *C, double *h,
 /**
  * Inverse transform from CIECAM02 JCh to XYZ.
  */
-void jch2xyz_ciecam02( double *x, double *y, double *z,
+static void jch2xyz_ciecam02( double *x, double *y, double *z,
                        double J, double C, double h,
                        double xw, double yw, double zw,
                        double yb, double la,
@@ -98,7 +101,7 @@ void jch2xyz_ciecam02( double *x, double *y, double *z,
  * This function is for analysis of all six major perceptual correlates
  * from CIECAM02.  If any of the pointers are 0 they will not be filled.
  */
-void xyz2jchqms_ciecam02( double *J, double *C, double *h,
+static void xyz2jchqms_ciecam02( double *J, double *C, double *h,
                           double *Q, double *M, double *s,
                           double x, double y, double z,
                           double xw, double yw, double zw,

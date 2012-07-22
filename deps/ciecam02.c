@@ -59,7 +59,6 @@ struct CIECAM02vc {
   double n, z, f, c, nbb, nc, ncb, fl, d;
 };
 
-
 static double compute_n(struct CIECAM02vc theVC) {
   return(theVC.yb / theVC.yw);
 }
@@ -505,3 +504,132 @@ int main_ciecam (int argc, char** argv) {
 
   return (0);
 }
+
+
+
+/**
+ * Forward transform from XYZ to CIECAM02 JCh.
+ */
+static void xyz2jch_ciecam02( double *J, double *C, double *h,
+                       double x, double y, double z,
+                       double xw, double yw, double zw,
+                       double yb, double la,
+                       double f, double c, double nc ) {
+   CIECAM02color xyz;
+   xyz.x = x;
+   xyz.y = y;
+   xyz.z = z;
+
+   CIECAM02vc vc;
+   vc.xw = xw;
+   vc.yw = yw;
+   vc.zw = zw;
+   vc.yb = yb;
+   vc.la = la;
+
+   vc.f = f;
+   vc.c  = c;
+   vc.nc = nc;
+
+   vc.surround = 1;
+
+   vc.n   = compute_n(vc);
+   vc.z   = compute_z(vc);
+   vc.fl  = compute_fl(vc);
+   vc.nbb = compute_nbb(vc);
+   vc.ncb = vc.nbb;
+   vc.d   = compute_d(vc);
+   vc.aw  = achromatic_response_to_white(vc);
+
+   CIECAM02color jch = forwardCIECAM02(xyz, vc, 0, NULL);
+   *J = jch.J;
+   *C = jch.C;
+   *h = jch.h;
+}
+
+/**
+ * Inverse transform from CIECAM02 JCh to XYZ.
+ */
+static void jch2xyz_ciecam02( double *x, double *y, double *z,
+                       double J, double C, double h,
+                       double xw, double yw, double zw,
+                       double yb, double la,
+                       double f, double c, double nc ) {
+   CIECAM02color jch;
+   jch.J = J;
+   jch.C = C;
+   jch.h = h;
+
+   CIECAM02vc vc;
+   vc.xw = xw;
+   vc.yw = yw;
+   vc.zw = zw;
+   vc.yb = yb;
+   vc.la = la;
+
+   vc.f = f;
+   vc.c  = c;
+   vc.nc = nc;
+
+   vc.surround = 1;
+
+   vc.n   = compute_n(vc);
+   vc.z   = compute_z(vc);
+   vc.fl  = compute_fl(vc);
+   vc.nbb = compute_nbb(vc);
+   vc.ncb = vc.nbb;
+   vc.d   = compute_d(vc);
+   vc.aw  = achromatic_response_to_white(vc);
+
+   CIECAM02color xyz = inverseCIECAM02(xyz, vc, 0, NULL);
+   *x = xyz.x;
+   *y = xyz.y;
+   *z = xyz.z;
+}
+
+/**
+ * This function is for analysis of all six major perceptual correlates
+ * from CIECAM02.  If any of the pointers are 0 they will not be filled.
+ */
+static void xyz2jchqms_ciecam02( double *J, double *C, double *h,
+                          double *Q, double *M, double *s,
+                          double x, double y, double z,
+                          double xw, double yw, double zw,
+                          double yb, double la,
+                          double f, double c, double nc ) {
+   CIECAM02color xyz;
+   xyz.x = x;
+   xyz.y = y;
+   xyz.z = z;
+
+   CIECAM02vc vc;
+   vc.xw = xw;
+   vc.yw = yw;
+   vc.zw = zw;
+   vc.yb = yb;
+   vc.la = la;
+
+   vc.f = f;
+   vc.c  = c;
+   vc.nc = nc;
+
+   vc.surround = 1;
+
+   vc.n   = compute_n(vc);
+   vc.z   = compute_z(vc);
+   vc.fl  = compute_fl(vc);
+   vc.nbb = compute_nbb(vc);
+   vc.ncb = vc.nbb;
+   vc.d   = compute_d(vc);
+   vc.aw  = achromatic_response_to_white(vc);
+
+   CIECAM02color jch = forwardCIECAM02(xyz, vc, 0, NULL);
+   if (J) *J = jch.J;
+   if (C) *C = jch.C;
+   if (h) *h = jch.h;
+
+   if (Q) *Q = jch.Q;
+   if (M) *M = jch.M;
+   if (s) *s = jch.s;
+}
+
