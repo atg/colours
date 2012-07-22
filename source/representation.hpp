@@ -1,34 +1,52 @@
 #import "vec.hpp"
+#import "ciecam02.h"
 
 namespace colour {
 
-struct RGB, HSL, HSV, XYZ, LAB, HCL, CIECAM;
+struct RGB;
+struct HSL;
+struct HSB;
+struct XYZ;
+struct LAB;
+struct LCH;
+struct CIECAM;
 
 /*
  * RGB is bog standard sRGB.
  * HSL is Hue Saturation Lightness.
- * HSV is Hue Saturation Value aka Hue Saturation Brightness. A stupid colour model that is unfortunately used in many programs (including OS X).
+ * HSB is Hue Saturation Brightness aka Hue Saturation Value. A stupid colour model that is unfortunately used in many programs (including OS X).
  * (CIE)XYZ is a transitional colour space between RGB and LAB. There's not much use for it.
  * (CIE)LAB is a perceptually linear colour space.
- * HCL is better known as CIELch. Hue, Chroma, Lightness. We reverse it to match the order of HSL.
+ * LCH is CIELch. Lightness, Chroma, Hue. We reverse it to match the order of HSL.
  * CIECAM is an advanced colour space that is more perceptually linear than CIELAB, though less common.
  */
+
+struct HCL {
+    
+    HCL(double h, double s, double l)
+      : hue(h), saturation(s), lightness(l) { }
+    
+    double hue;
+    double saturation;
+    double lightness;
+    double a;
+};
 
 struct RGB : Vec4 {
     RGB(double r, double g, double b, double a = 1.0)
       : Vec4(r, g, b, a) { }
     
-    RGB(RGB v) : Vec4(v);
-    RGB(HSL v);
-    RGB(HSV v);
-    RGB(XYZ v);
-    RGB(LAB v) : RGB(XYZ(v)) { }
-    RGB(HCL v) : RGB(XYZ(LAB(v))) { }
+    RGB(RGB const & v) : Vec4(v) { }
+    RGB(HSL);
+    RGB(HSB);
+    RGB(XYZ);
+    // RGB(LAB v) : RGB(XYZ(v)) { }
+    // RGB(LCH v) : RGB(XYZ(LAB(v))) { }
     // RGB(CIECAM v) : RGB(XYZ(LAB(v))) { }
     
-    double r() { return x; }
-    double g() { return y; }
-    double b() { return z; }
+    double& red() { return x; }
+    double& green() { return y; }
+    double& blue() { return z; }
 };
 
 struct HSL : Vec4 {
@@ -36,33 +54,33 @@ struct HSL : Vec4 {
       : Vec4(h, s, l, a) { }
     
     HSL(RGB v);
-    HSL(HSL v) : Vec4(v);
-    HSL(HSV v) : HSL(RGB(v));
-    HSL(XYZ v) : HSL(RGB(v));
-    HSL(LAB v) : HSL(RGB(XYZ(v))) { }
-    HSL(HCL v) : HSL(RGB(XYZ(LAB(v)))) { }
+    HSL(HSL const &v) : Vec4(v) { }
+    // HSL(HSB v) : HSL(RGB(v));
+    // HSL(XYZ v) : HSL(RGB(v));
+    // HSL(LAB v) : HSL(RGB(XYZ(v))) { }
+    // HSL(LCH v) : HSL(RGB(XYZ(LAB(v)))) { }
     // HSL(CIECAM v) : HSL(RGB(XYZ(LAB(v)))) { }
 
-    double hue() { return x; }
-    double saturation() { return y; }
-    double lightness() { return z; }
+    double& hue() { return x; }
+    double& saturation() { return y; }
+    double& lightness() { return z; }
 };
 
-struct HSV : Vec4 {
-    HSV(double h, double s, double v, double a = 1.0)
+struct HSB : Vec4 {
+    HSB(double h, double s, double v, double a = 1.0)
       : Vec4(h, s, v, a) { }
 
-    HSV(RGB v);
-    HSV(HSL v) : HSV(RGB(v));
-    HSV(HSV v) : Vec4(v);
-    HSV(XYZ v) : HSV(RGB(v));
-    HSV(LAB v) : HSV(RGB(XYZ(v))) { }
-    HSV(HCL v) : HSV(RGB(XYZ(LAB(v)))) { }
-    // HSV(CIECAM v) : HSV(RGB(XYZ(LAB(v)))) { }
+    HSB(RGB v);
+    // HSB(HSL v) : HSB(RGB(v));
+    HSB(HSB const &v) : Vec4(v) { }
+    // HSB(XYZ v) : HSB(RGB(v));
+    // HSB(LAB v) : HSB(RGB(XYZ(v))) { }
+    // HSB(LCH v) : HSB(RGB(XYZ(LAB(v)))) { }
+    // HSB(CIECAM v) : HSB(RGB(XYZ(LAB(v)))) { }
 
-    double hue() { return x; }
-    double saturation() { return y; }
-    double value() { return z; }
+    double& hue() { return x; }
+    double& saturation() { return y; }
+    double& brightness() { return z; }
 };
 
 struct XYZ : Vec4 {
@@ -70,140 +88,76 @@ struct XYZ : Vec4 {
       : Vec4(x, y, z, a) { }
 
     XYZ(RGB v);
-    XYZ(HSL v) : XYZ(RGB(v));
-    XYZ(HSV v) : XYZ(RGB(v));
-    XYZ(XYZ v) : Vec4(v);
+    // XYZ(HSL v) : XYZ(RGB(v));
+    // XYZ(HSB v) : XYZ(RGB(v));
+    XYZ(XYZ const &v) : Vec4(v) { }
     XYZ(LAB v);
-    XYZ(HCL v) : XYZ(LAB(v)) { }
-    // XYZ(CIECAM v) : XYZ(LAB(v)) { }
+    // XYZ(LCH v) : XYZ(LAB(v)) { }
+    XYZ(CIECAM v); // : XYZ(LAB(v)) { }
 };
 
 struct LAB : Vec4 {
     LAB(double l, double astar, double bstar, double a = 1.0)
       : Vec4(l, astar, bstar, a) { }
-
-    LAB(RGB v) : LAB(XYZ(v));
-    LAB(HSL v) : LAB(XYZ(RGB(v)));
-    LAB(HSV v) : LAB(XYZ(RGB(v)));
+    
+    // LAB(RGB v) : LAB(XYZ(v));
+    // LAB(HSL v) : LAB(XYZ(RGB(v)));
+    // LAB(HSB v) : LAB(XYZ(RGB(v)));
     LAB(XYZ v);
-    LAB(LAB v) : Vec4(v);
-    LAB(HCL v);
+    LAB(LAB const &v) : Vec4(v) { }
+    LAB(LCH v);
     // LAB(CIECAM v);
 
-    double lightness() { return x; }
-    double astar() { return y; }
-    double bstar() { return z; }
+    double& lightness() { return x; }
+    double& astar() { return y; }
+    double& bstar() { return z; }
 };
 
-struct HCL : Vec4 {
-    HCL(double hue, double chroma, double lightness, double a = 1.0)
+struct LCH : Vec4 {
+    LCH(double hue, double chroma, double lightness, double a = 1.0)
       : Vec4(hue, chroma, lightness, a) { }
 
-    HCL(RGB v) : HCL(LAB(XYZ(v)));
-    HCL(HSL v) : HCL(LAB(XYZ(RGB(v))));
-    HCL(HSV v) : HCL(LAB(XYZ(RGB(v))));
-    HCL(XYZ v) : HCL(LAB(v));
-    HCL(LAB v);
-    HCL(HCL v) : Vec4(v);
-    // HCL(CIECAM v) : HCL(LAB(v));
+    // LCH(RGB v) : LCH(LAB(XYZ(v)));
+    // LCH(HSL v) : LCH(LAB(XYZ(RGB(v))));
+    // LCH(HSB v) : LCH(LAB(XYZ(RGB(v))));
+    // LCH(XYZ v) : LCH(LAB(v));
+    LCH(LAB v);
+    LCH(LCH const &v) : Vec4(v) { }
+    // LCH(CIECAM v) : LCH(LAB(v));
 
-    double hue() { return x; }
-    double chroma() { return y; }
-    double lightness() { return z; }
+    double& hue() { return x; }
+    double& chroma() { return y; }
+    double& lightness() { return z; }
 };
 
 struct CIECAM : Vec4 {
-    HCL(double hue, double chroma, double lightness, double a = 1.0)
+    CIECAM(double lightness, double chroma, double hue, double a = 1.0)
       : Vec4(hue, chroma, lightness, a) { }
-
-    CIECAM(RGB v) : CIECAM(LAB(XYZ(v)));
-    CIECAM(HSL v) : CIECAM(LAB(XYZ(RGB(v))));
-    CIECAM(HSV v) : CIECAM(LAB(XYZ(RGB(v))));
+    
+    CIECAM() : Vec4() { }
+    // CIECAM(RGB v) : CIECAM(LAB(XYZ(v)));
+    // CIECAM(HSL v) : CIECAM(LAB(XYZ(RGB(v))));
+    // CIECAM(HSB v) : CIECAM(LAB(XYZ(RGB(v))));
     CIECAM(XYZ v);
-    CIECAM(LAB v) : CIECAM(XYZ(v));
-    CIECAM(HCL v) : CIECAM(LAB(v));
-    CIECAM(CIECAM v) : Vec4(v);
+    // CIECAM(LAB v) : CIECAM(XYZ(v));
+    // CIECAM(LCH v) : CIECAM(LAB(v));
+    CIECAM(CIECAM const &v) : Vec4(v) { }
 
-    double hue() { return x; }
-    double chroma() { return y; }
-    double lightness() { return z; }
+    double& lightness() { return x; }
+    double& chroma() { return y; }
+    double& hue() { return z; }
+    
+    // Additional information
+    typedef struct {
+        double brightness;
+        double colourfulness;
+        double saturation;
+    } Extras;
+    
+    Extras extras();
+    double brightness() { return extras().brightness; }
+    double colourfulness() { return extras().colourfulness; }
+    double saturation() { return extras().saturation; }
 };
-
-
-
-// HSL -> RGB
-RGB::RGB(HSL v) {
-    // ...
-}
-// RGB -> HSL
-HSL::HSL(RGB v) {
-    // ...
-}
-
-// HSV -> RGB
-RGB::RGB(HSV v) {
-    // ...
-}
-// RGB -> HSV
-HSV::HSV(RGB v) {
-    // ...
-}
-
-// XYZ -> RGB
-RGB::RGB(XYZ v) {
-    // ...
-}
-// RGB -> XYZ
-XYZ::XYZ(RGB v) {
-    // ...
-}
-
-// XYZ -> LAB
-LAB::LAB(XYZ v) {
-    // ...
-}
-// LAB -> XYZ
-XYZ::XYZ(LAB v) {
-    // ...
-}
-
-// HCL -> LAB
-LAB::LAB(HCL v) {
-    // ...
-}
-// LAB -> HCL
-HCL::HCL(LAB v) {
-    // ...
-}
-
-const double CIECAM_LA = 4.0;
-const double CIECAM_YB = 20.0;
-const double CIECAM_XW = 95.05;
-const double CIECAM_YW = 100.0;
-const double CIECAM_ZW = 108.88;
-
-const double CIECAM_F = 1.0;
-const double CIECAM_C = 0.690;
-const double CIECAM_NC = 1.0;
-
-// CIECAM -> XYZ
-XYZ::XYZ(CIECAM v) {
-    // ...
-}
-// XYZ -> CIECAM
-CIECAM::CIECAM(XYZ v) {
-    
-    CIECAM out;
-    out.a = v.a;
-    xyz2jch_ciecam02(
-        &out.z, &out.y, &out.x,
-        v.x, v.y, v.z,
-        CIECAM_XW, CIECAM_YW, CIECAM_ZW,
-        CIECAM_YB, CIECAM_LA,
-        CIECAM_F, CIECAM_C, CIECAM_NC
-    ); // ???
-    
-    return out;
-}
 
 }

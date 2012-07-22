@@ -1,4 +1,5 @@
 #import <math.h> // I spit on your "cmath"!
+#import <assert.h>
 
 namespace colour {
 
@@ -7,7 +8,10 @@ struct Vec4 {
     double y;
     double z;
     double a; // Alpha
+    double& alpha() { return a; }
     
+    Vec4()
+      : x(), y(), z(), a() { }
     Vec4(double x, double y, double z, double a = 1.0)
       : x(x), y(y), z(z), a(a) { }
 };
