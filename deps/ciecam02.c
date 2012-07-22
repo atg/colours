@@ -371,7 +371,7 @@ struct CIECAM02color inverseCIECAM02(struct CIECAM02color theColor,
 }
 
 
-int main (int argc, char** argv) {
+int main_ciecam (int argc, char** argv) {
 
   int mode, verbose, setD, i, samples;
   char temp_char;
