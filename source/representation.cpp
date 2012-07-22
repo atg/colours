@@ -4,9 +4,38 @@ namespace colour {
 
 // HSL -> RGB
 RGB::RGB(HSL v) {
-    double chroma = (1.0 - fabs(2.0 * v.lightness() - 1.0)) * v.saturation();
-    double hueprime = hue / 6.0;
+    // https://en.wikipedia.org/wiki/HSL_and_HSV#From_HSL
     
+    double c = (1.0 - fabs(2.0 * v.lightness() - 1.0)) * v.saturation();
+    double hprime = hue / 6.0;
+    double x = c * (1.0 - fabs(fmod(hprime, 2.0) - 1.0));
+    
+    if (0 <= hprime && hprime < 1) {
+        r() = c; g() = x; b() = 0.0;
+    }
+    else if (1 <= hprime && hprime < 2) {
+        r() = x; g() = c; b() = 0.0;
+    }
+    else if (2 <= hprime && hprime < 3) {
+        r() = 0.0; g() = c; b() = x;
+    }
+    else if (3 <= hprime && hprime < 4) {
+        r() = 0.0; g() = x; b() = c;
+    }
+    else if (4 <= hprime && hprime < 5) {
+        r() = x; g() = 0.0; b() = c;
+    }
+    else if (5 <= hprime && hprime < 6) {
+        r() = c; g() = 0.0; b() = x;
+    }
+    else {
+        r() = 0.0; g() = 0.0; b() = 0.0;
+    }
+    
+    double m = v.lightness() - (c / 2.0);
+    r() += m;
+    g() += m;
+    b() += m;
 }
 // RGB -> HSL
 HSL::HSL(RGB v) {
@@ -15,7 +44,38 @@ HSL::HSL(RGB v) {
 
 // HSV -> RGB
 RGB::RGB(HSV v) {
-    // ...
+    // https://en.wikipedia.org/wiki/HSL_and_HSV#From_HSV
+
+    double c = v.brightness() * v.saturation();
+    double hprime = hue / 6.0;
+    double x = c * (1.0 - fabs(fmod(hprime, 2.0) - 1.0));
+
+    if (0 <= hprime && hprime < 1) {
+        r() = c; g() = x; b() = 0.0;
+    }
+    else if (1 <= hprime && hprime < 2) {
+        r() = x; g() = c; b() = 0.0;
+    }
+    else if (2 <= hprime && hprime < 3) {
+        r() = 0.0; g() = c; b() = x;
+    }
+    else if (3 <= hprime && hprime < 4) {
+        r() = 0.0; g() = x; b() = c;
+    }
+    else if (4 <= hprime && hprime < 5) {
+        r() = x; g() = 0.0; b() = c;
+    }
+    else if (5 <= hprime && hprime < 6) {
+        r() = c; g() = 0.0; b() = x;
+    }
+    else {
+        r() = 0.0; g() = 0.0; b() = 0.0;
+    }
+
+    double m = v.brightness() - c;
+    r() += m;
+    g() += m;
+    b() += m;
 }
 // RGB -> HSV
 HSV::HSV(RGB v) {
@@ -31,9 +91,18 @@ XYZ::XYZ(RGB v) {
     // ...
 }
 
+static double f(double t) {
+    if (t > pow(6.0 / 29.0, 3.0))
+        return pow(t, 1.0 / 3.0);
+    return (1.0 / 3.0) * pow(29.0 / 6.0, 2.0) * t + (4.0 / 29.0);
+}
+
 // XYZ -> LAB
 LAB::LAB(XYZ v) {
-    // ...
+    
+    lightness() = 116.0 * f(v.y / Yn) - 16.0;
+    astar() = 500.0 * (f(v.x / Xn) - f(v.y / Yn));
+    bstar() = 200.0 * (f(v.y / Yn) - f(v.z / Zn));
 }
 // LAB -> XYZ
 XYZ::XYZ(LAB v) {
