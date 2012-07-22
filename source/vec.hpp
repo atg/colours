@@ -16,7 +16,19 @@ struct Vec4 {
       : x(x), y(y), z(z), a(a) { }
 };
 
-Vec4 operator + (Vec4 v, Vec4 w) {
+static bool double_eq(double a, double b) {
+    return fabs(a - b) < 0.00001;
+}
+
+static bool operator == (Vec4 v, Vec4 w) {
+    return double_eq(v.x, w.x) && double_eq(v.y, w.y) && double_eq(v.z, w.z) && double_eq(v.a, w.a);
+}
+
+static bool operator != (Vec4 v, Vec4 w) {
+    return !(v == w);
+}
+
+static Vec4 operator + (Vec4 v, Vec4 w) {
     assert(fabs(v.a - w.a) < 0.001 && "Trying to add colours of different alpha.");
     
     return Vec4(
@@ -26,7 +38,7 @@ Vec4 operator + (Vec4 v, Vec4 w) {
         v.a);
 }
 
-Vec4 operator - (Vec4 v, Vec4 w) {
+static Vec4 operator - (Vec4 v, Vec4 w) {
     assert(fabs(v.a - w.a) < 0.001 && "Trying to subtract colours of different alpha.");
     
     return Vec4(
@@ -36,7 +48,7 @@ Vec4 operator - (Vec4 v, Vec4 w) {
         v.a);
 }
 
-Vec4 operator * (double val, Vec4 w) {
+static Vec4 operator * (double val, Vec4 w) {
     return Vec4(
         val * w.x,
         val * w.y, 
@@ -44,7 +56,7 @@ Vec4 operator * (double val, Vec4 w) {
         w.a);
 }
 
-Vec4 operator * (Vec4 v, double val) {
+static Vec4 operator * (Vec4 v, double val) {
     return Vec4(
         v.x * val,
         v.y * val, 

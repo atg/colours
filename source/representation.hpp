@@ -20,7 +20,7 @@ struct CIECAM;
  * LCH is CIELch. Lightness, Chroma, Hue. We reverse it to match the order of HSL.
  * CIECAM is an advanced colour space that is more perceptually linear than CIELAB, though less common.
  */
-
+/*
 struct HCL {
     
     HCL(double h, double s, double l)
@@ -31,7 +31,7 @@ struct HCL {
     double lightness;
     double a;
 };
-
+*/
 struct RGB : Vec4 {
     RGB(double r, double g, double b, double a = 1.0)
       : Vec4(r, g, b, a) { }
@@ -40,13 +40,16 @@ struct RGB : Vec4 {
     RGB(HSL);
     RGB(HSB);
     RGB(XYZ);
-    // RGB(LAB v) : RGB(XYZ(v)) { }
-    // RGB(LCH v) : RGB(XYZ(LAB(v))) { }
-    // RGB(CIECAM v) : RGB(XYZ(LAB(v))) { }
+    RGB(LAB v); //
+    RGB(LCH v); //
+    RGB(CIECAM v); //
     
-    double& red() { return x; }
-    double& green() { return y; }
-    double& blue() { return z; }
+    RGB& operator = (const RGB& v) { x = v.x; y = v.y; z = v.z; a = v.a; return *this; }
+    RGB() : Vec4() { }
+    
+    double& r() { return x; }
+    double& g() { return y; }
+    double& b() { return z; }
 };
 
 struct HSL : Vec4 {
@@ -55,12 +58,15 @@ struct HSL : Vec4 {
     
     HSL(RGB v);
     HSL(HSL const &v) : Vec4(v) { }
-    // HSL(HSB v) : HSL(RGB(v));
-    // HSL(XYZ v) : HSL(RGB(v));
-    // HSL(LAB v) : HSL(RGB(XYZ(v))) { }
-    // HSL(LCH v) : HSL(RGB(XYZ(LAB(v)))) { }
-    // HSL(CIECAM v) : HSL(RGB(XYZ(LAB(v)))) { }
-
+    HSL(HSB v); //
+    HSL(XYZ v); //
+    HSL(LAB v); //
+    HSL(LCH v); //
+    HSL(CIECAM v); //
+    
+    HSL& operator = (const HSL& v) { x = v.x; y = v.y; z = v.z; a = v.a; return *this; }
+    HSL() : Vec4() { }
+    
     double& hue() { return x; }
     double& saturation() { return y; }
     double& lightness() { return z; }
@@ -71,13 +77,16 @@ struct HSB : Vec4 {
       : Vec4(h, s, v, a) { }
 
     HSB(RGB v);
-    // HSB(HSL v) : HSB(RGB(v));
+    HSB(HSL v); //
     HSB(HSB const &v) : Vec4(v) { }
-    // HSB(XYZ v) : HSB(RGB(v));
-    // HSB(LAB v) : HSB(RGB(XYZ(v))) { }
-    // HSB(LCH v) : HSB(RGB(XYZ(LAB(v)))) { }
-    // HSB(CIECAM v) : HSB(RGB(XYZ(LAB(v)))) { }
-
+    HSB(XYZ v); //
+    HSB(LAB v); //
+    HSB(LCH v); //
+    HSB(CIECAM v); //
+    
+    HSB& operator = (const HSB& v) { x = v.x; y = v.y; z = v.z; a = v.a; return *this; }
+    HSB() : Vec4() { }
+    
     double& hue() { return x; }
     double& saturation() { return y; }
     double& brightness() { return z; }
@@ -88,26 +97,32 @@ struct XYZ : Vec4 {
       : Vec4(x, y, z, a) { }
 
     XYZ(RGB v);
-    // XYZ(HSL v) : XYZ(RGB(v));
-    // XYZ(HSB v) : XYZ(RGB(v));
+    XYZ(HSL v); //
+    XYZ(HSB v); //
     XYZ(XYZ const &v) : Vec4(v) { }
     XYZ(LAB v);
-    // XYZ(LCH v) : XYZ(LAB(v)) { }
-    XYZ(CIECAM v); // : XYZ(LAB(v)) { }
+    XYZ(LCH v); //
+    XYZ(CIECAM v);
+    
+    XYZ& operator = (const XYZ& v) { x = v.x; y = v.y; z = v.z; a = v.a; return *this; }
+    XYZ() : Vec4() { }
 };
 
 struct LAB : Vec4 {
     LAB(double l, double astar, double bstar, double a = 1.0)
       : Vec4(l, astar, bstar, a) { }
     
-    // LAB(RGB v) : LAB(XYZ(v));
-    // LAB(HSL v) : LAB(XYZ(RGB(v)));
-    // LAB(HSB v) : LAB(XYZ(RGB(v)));
+    LAB(RGB v); //
+    LAB(HSL v); //
+    LAB(HSB v); //
     LAB(XYZ v);
     LAB(LAB const &v) : Vec4(v) { }
     LAB(LCH v);
-    // LAB(CIECAM v);
-
+    LAB(CIECAM v); //
+    
+    LAB& operator = (const LAB& v) { x = v.x; y = v.y; z = v.z; a = v.a; return *this; }
+    LAB() : Vec4() { }
+    
     double& lightness() { return x; }
     double& astar() { return y; }
     double& bstar() { return z; }
@@ -117,14 +132,17 @@ struct LCH : Vec4 {
     LCH(double hue, double chroma, double lightness, double a = 1.0)
       : Vec4(hue, chroma, lightness, a) { }
 
-    // LCH(RGB v) : LCH(LAB(XYZ(v)));
-    // LCH(HSL v) : LCH(LAB(XYZ(RGB(v))));
-    // LCH(HSB v) : LCH(LAB(XYZ(RGB(v))));
-    // LCH(XYZ v) : LCH(LAB(v));
+    LCH(RGB v); //
+    LCH(HSL v); //
+    LCH(HSB v); //
+    LCH(XYZ v); //
     LCH(LAB v);
     LCH(LCH const &v) : Vec4(v) { }
-    // LCH(CIECAM v) : LCH(LAB(v));
-
+    LCH(CIECAM v); //
+    
+    LCH& operator = (const LCH& v) { x = v.x; y = v.y; z = v.z; a = v.a; return *this; }
+    LCH() : Vec4() { }
+    
     double& hue() { return x; }
     double& chroma() { return y; }
     double& lightness() { return z; }
@@ -134,15 +152,17 @@ struct CIECAM : Vec4 {
     CIECAM(double lightness, double chroma, double hue, double a = 1.0)
       : Vec4(hue, chroma, lightness, a) { }
     
-    CIECAM() : Vec4() { }
-    // CIECAM(RGB v) : CIECAM(LAB(XYZ(v)));
-    // CIECAM(HSL v) : CIECAM(LAB(XYZ(RGB(v))));
-    // CIECAM(HSB v) : CIECAM(LAB(XYZ(RGB(v))));
+    CIECAM(RGB v); //
+    CIECAM(HSL v); //
+    CIECAM(HSB v); //
     CIECAM(XYZ v);
-    // CIECAM(LAB v) : CIECAM(XYZ(v));
-    // CIECAM(LCH v) : CIECAM(LAB(v));
+    CIECAM(LAB v); //
+    CIECAM(LCH v); //
     CIECAM(CIECAM const &v) : Vec4(v) { }
-
+    
+    CIECAM& operator = (const CIECAM& v) { x = v.x; y = v.y; z = v.z; a = v.a; return *this; }
+    CIECAM() : Vec4() { }
+    
     double& lightness() { return x; }
     double& chroma() { return y; }
     double& hue() { return z; }
@@ -161,3 +181,4 @@ struct CIECAM : Vec4 {
 };
 
 }
+

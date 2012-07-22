@@ -6,7 +6,7 @@ const double delta = 0.01;
 const long N = 47;
 
 template<typename From, typename To>
-static void test(const char* FromName, const char ToName) {
+static void test(const char* FromName, const char* ToName) {
     
     for (long x = 0; x <= N; x++) {
         for (long y = 0; y <= N; y++) {
@@ -24,21 +24,21 @@ static void test(const char* FromName, const char ToName) {
                     To c4 = To(c3);
                     
                     if (c1 != c3) {
-                        printf("Not equal %s{%.5lf, %.5lf, %.5lf, %.5lf} != %s{%.5lf, %.5lf, %.5lf, %.5lf}",
+                        printf("Not equal %s{%.5lf, %.5lf, %.5lf, %.5lf} != %s{%.5lf, %.5lf, %.5lf, %.5lf}\n",
+                            FromName,
                             c1.x, c1.y, c1.z, c1.a,
                             FromName,
-                            c3.x, c3.y, c3.z, c3.a,
-                            FromName
+                            c3.x, c3.y, c3.z, c3.a
                         );
                         return;
                     }
                     
                     if (c2 != c4) {
-                        printf("Not equal {%.5lf, %.5lf, %.5lf, %.5lf} != {%.5lf, %.5lf, %.5lf, %.5lf}",
+                        printf("Not equal %s{%.5lf, %.5lf, %.5lf, %.5lf} != %s{%.5lf, %.5lf, %.5lf, %.5lf}\n",
+                            ToName,
                             c2.x, c2.y, c2.z, c2.a,
                             ToName,
-                            c4.x, c4.y, c4.z, c4.a,
-                            ToName
+                            c4.x, c4.y, c4.z, c4.a
                         );
                         return;
                     }
@@ -49,7 +49,7 @@ static void test(const char* FromName, const char ToName) {
     
 }
 
-#define DO_TEST(a, b) test<a, b>(#a, #b)
+#define DO_TEST(a, b) test<colour::a, colour::b>(#a, #b)
 
 int main(int argc, char *argv[]) {
     

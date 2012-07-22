@@ -1,13 +1,68 @@
 #import "representation.hpp"
+#import <algorithm>
+
+#ifndef MAX
+#define MAX(_a, _b) ((_a) > (_b) ? (_a) : (_b)) // Don't need anything fancy for this
+#endif
+
+#ifndef MIN
+#define MIN(_a, _b) ((_a) < (_b) ? (_a) : (_b))
+#endif
+
 
 namespace colour {
+
+// The following are "colour spaces" in the sense that they have colour models that depend on them
+RGB::RGB(LAB v)    { *this = RGB(XYZ(v)); }
+RGB::RGB(LCH v)    { *this = RGB(XYZ(LAB(v))); }
+RGB::RGB(CIECAM v) { *this = RGB(XYZ(v)); }
+
+XYZ::XYZ(HSL v)    { *this = XYZ(RGB(v)); }
+XYZ::XYZ(HSB v)    { *this = XYZ(RGB(v)); }
+XYZ::XYZ(LCH v)    { *this = XYZ(LAB(v)); }
+
+LAB::LAB(RGB v)    { *this = LAB(XYZ(v)); }
+LAB::LAB(HSL v)    { *this = LAB(XYZ(RGB(v))); }
+LAB::LAB(HSB v)    { *this = LAB(XYZ(RGB(v))); }
+LAB::LAB(CIECAM v) { *this = LAB(XYZ(v)); }
+
+
+// The following are "colour models" in the sense that they are just a transformation of one of the colour spaces above
+
+HSL::HSL(HSB v) { *this = HSL(RGB(v)); }
+HSL::HSL(XYZ v) { *this = HSL(RGB(v)); }
+HSL::HSL(LAB v) { *this = HSL(RGB(v)); }
+HSL::HSL(LCH v) { *this = HSL(RGB(v)); }
+HSL::HSL(CIECAM v) { *this = HSL(RGB(v)); }
+
+HSB::HSB(HSL v) { *this = HSB(RGB(v)); }
+HSB::HSB(XYZ v) { *this = HSB(RGB(v)); }
+HSB::HSB(LAB v) { *this = HSB(RGB(v)); }
+HSB::HSB(LCH v) { *this = HSB(RGB(v)); }
+HSB::HSB(CIECAM v) { *this = HSB(RGB(v)); }
+
+LCH::LCH(RGB v) { *this = LCH(LAB(v)); }
+LCH::LCH(HSL v) { *this = LCH(LAB(v)); }
+LCH::LCH(HSB v) { *this = LCH(LAB(v)); }
+LCH::LCH(XYZ v) { *this = LCH(LAB(v)); }
+LCH::LCH(CIECAM v) { *this = LCH(LAB(v)); }
+
+CIECAM::CIECAM(RGB v) { *this = CIECAM(XYZ(v)); }
+CIECAM::CIECAM(HSL v) { *this = CIECAM(XYZ(v)); }
+CIECAM::CIECAM(HSB v) { *this = CIECAM(XYZ(v)); }
+CIECAM::CIECAM(LAB v) { *this = CIECAM(XYZ(v)); }
+CIECAM::CIECAM(LCH v) { *this = CIECAM(XYZ(v)); }
+
+const double Xn = 95.05;
+const double Yn = 100.00;
+const double Zn = 108.88;
 
 // HSL -> RGB
 RGB::RGB(HSL v) {
     // https://en.wikipedia.org/wiki/HSL_and_HSV#From_HSL
     
     double c = (1.0 - fabs(2.0 * v.lightness() - 1.0)) * v.saturation();
-    double hprime = hue / 6.0;
+    double hprime = v.hue() / 6.0;
     double x = c * (1.0 - fabs(fmod(hprime, 2.0) - 1.0));
     
     if (0 <= hprime && hprime < 1) {
@@ -41,36 +96,36 @@ RGB::RGB(HSL v) {
 HSL::HSL(RGB v) {
     // https://en.wikipedia.org/wiki/HSL_and_HSV#Hue_and_chroma
     
-    double max = std::max(std::max(v.r, v.g), v.b);
-    double min = std::min(std::min(v.r, v.g), v.b);
+    double max = std::max(std::max(v.r(), v.g()), v.b());
+    double min = std::min(std::min(v.r(), v.g()), v.b());
     double chroma = max - min;
     
     hue() = 0.0;
-    if (v.r > v.g && v.r > v.b) // Red is max
-        hue() = fmod((v.g - v.b) / c, 6.0);
-    if (v.g > v.r && v.g > v.b) // Green is max
-        hue() = (v.b - v.r) + 2.0;
-    if (v.b > v.r && v.b > v.g) // Blue is max
-        hue() = (v.b - v.g) + 4.0;
+    if (v.r() > v.g() && v.r() > v.b()) // Red is max
+        hue() = fmod((v.g() - v.b()) / chroma, 6.0);
+    if (v.g() > v.r() && v.g() > v.b()) // Green is max
+        hue() = (v.b() - v.r()) + 2.0;
+    if (v.b() > v.r() && v.b() > v.g()) // Blue is max
+        hue() = (v.b() - v.g()) + 4.0;
     
     hue() /= 6.0;
     
     // https://en.wikipedia.org/wiki/HSL_and_HSV#Lightness
-    lightness() = (v.r + v.g + v.b) / 3.0;
+    lightness() = (v.r() + v.g() + v.b()) / 3.0;
     
     // https://en.wikipedia.org/wiki/HSL_and_HSV#Saturation
-    if (l <= 0.5)
-        saturation() = chroma / (2.0 * l);
+    if (lightness() <= 0.5)
+        saturation() = chroma / (2.0 * lightness());
     else
-        saturation() = chroma / (2.0 - 2.0 * l);
+        saturation() = chroma / (2.0 - 2.0 * lightness());
 }
 
-// HSV -> RGB
-RGB::RGB(HSV v) {
+// HSB -> RGB
+RGB::RGB(HSB v) {
     // https://en.wikipedia.org/wiki/HSL_and_HSV#From_HSV
     
     double c = v.brightness() * v.saturation();
-    double hprime = hue / 6.0;
+    double hprime = v.hue() / 6.0;
     double x = c * (1.0 - fabs(fmod(hprime, 2.0) - 1.0));
 
     if (0 <= hprime && hprime < 1) {
@@ -100,23 +155,23 @@ RGB::RGB(HSV v) {
     g() += m;
     b() += m;
 }
-// RGB -> HSV
-HSV::HSV(RGB v) {
+// RGB -> HSB
+HSB::HSB(RGB v) {
     // https://en.wikipedia.org/wiki/HSL_and_HSV#Hue_and_chroma
     
     // https://en.wikipedia.org/wiki/HSL_and_HSV#Hue_and_chroma
     
-    double max = std::max(std::max(v.r, v.g), v.b);
-    double min = std::min(std::min(v.r, v.g), v.b);
+    double max = std::max(std::max(v.r(), v.g()), v.b());
+    double min = std::min(std::min(v.r(), v.g()), v.b());
     double chroma = max - min;
     
     hue() = 0.0;
-    if (v.r > v.g && v.r > v.b) // Red is max
-        hue() = fmod((v.g - v.b) / c, 6.0);
-    if (v.g > v.r && v.g > v.b) // Green is max
-        hue() = (v.b - v.r) + 2.0;
-    if (v.b > v.r && v.b > v.g) // Blue is max
-        hue() = (v.b - v.g) + 4.0;
+    if (v.r() > v.g() && v.r() > v.b()) // Red is max
+        hue() = fmod((v.g() - v.b()) / chroma, 6.0);
+    if (v.g() > v.r() && v.g() > v.b()) // Green is max
+        hue() = (v.b() - v.r()) + 2.0;
+    if (v.b() > v.r() && v.b() > v.g()) // Blue is max
+        hue() = (v.b() - v.g()) + 4.0;
     
     hue() /= 6.0;
     
@@ -142,7 +197,7 @@ static double rgb_standard_to_linear(double x) {
 // XYZ -> RGB
 RGB::RGB(XYZ v) {
     // https://en.wikipedia.org/wiki/SRGB#The_forward_transformation_.28CIE_xyY_or_CIE_XYZ_to_sRGB.29
-
+    
     r() =  3.2406 * x  -  1.5372 * y  -  0.4986 * z;
     g() = -0.9689 * x  +  1.8758 * y  +  0.0415 * z;
     b() =  0.0557 * x  -  0.2040 * y  +  1.0570 * z;
@@ -155,13 +210,13 @@ RGB::RGB(XYZ v) {
 XYZ::XYZ(RGB v) {
     // https://en.wikipedia.org/wiki/SRGB#The_reverse_transformation
     
-    v.r = rgb_standard_to_linear(v.r);
-    v.g = rgb_standard_to_linear(v.g);
-    v.b = rgb_standard_to_linear(v.b);
+    v.r() = rgb_standard_to_linear(v.r());
+    v.g() = rgb_standard_to_linear(v.g());
+    v.b() = rgb_standard_to_linear(v.b());
     
-    x() = 0.1805 * v.b  +  0.3576 * v.g  +  0.4124 * v.r;
-    y() = 0.0722 * v.b  +  0.7152 * v.g  +  0.2126 * v.r;
-    z() = 0.9505 * v.b  +  0.1192 * v.g  +  0.0193 * v.r;
+    x = 0.1805 * v.b()  +  0.3576 * v.g()  +  0.4124 * v.r();
+    y = 0.0722 * v.b()  +  0.7152 * v.g()  +  0.2126 * v.r();
+    z = 0.9505 * v.b()  +  0.1192 * v.g()  +  0.0193 * v.r();
 }
 
 static double f(double t) {
