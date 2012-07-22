@@ -2,6 +2,15 @@
 
 Colours is a C++ library for working with **colours** (duh). Mathematically.
 
+## Usage
+
+**colours** contains classes for a variety of different colour models. All colours are represented as:
+
+* Three `doubles` in the range of 0 to 1, for the chromatic information.
+* One `double` in the range of 0 to 1, for the alpha information.
+
+Numbers are *always* in the range of 0 to 1. That includes hue angles.
+
 ## Functionality
 
 Colours is separated into two parts: conversion and algorithms.

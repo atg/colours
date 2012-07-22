@@ -1,5 +1,6 @@
 #import "representation.hpp"
 #import <algorithm>
+#import <stdio.h>
 
 #ifndef MAX
 #define MAX(_a, _b) ((_a) > (_b) ? (_a) : (_b)) // Don't need anything fancy for this
@@ -62,9 +63,13 @@ RGB::RGB(HSL v) {
     // https://en.wikipedia.org/wiki/HSL_and_HSV#From_HSL
     
     double c = (1.0 - fabs(2.0 * v.lightness() - 1.0)) * v.saturation();
-    double hprime = v.hue() / 6.0;
+    double hprime = v.hue() * 6.0;
     double x = c * (1.0 - fabs(fmod(hprime, 2.0) - 1.0));
-    
+    // printf("v.hue() = %lf\n", v.hue());
+    // printf("hprime = %lf\n", hprime);
+    // printf("c = %lf\n", c);
+    // printf("x = %lf\n", x);
+    r() = 0.0; g() = 0.0; b() = 0.0;
     if (0 <= hprime && hprime < 1) {
         r() = c; g() = x; b() = 0.0;
     }
@@ -91,33 +96,45 @@ RGB::RGB(HSL v) {
     r() += m;
     g() += m;
     b() += m;
+    
+    alpha() = v.alpha();
 }
 // RGB -> HSL
 HSL::HSL(RGB v) {
     // https://en.wikipedia.org/wiki/HSL_and_HSV#Hue_and_chroma
     
-    double max = std::max(std::max(v.r(), v.g()), v.b());
-    double min = std::min(std::min(v.r(), v.g()), v.b());
+    double max = MAX(MAX(v.r(), v.g()), v.b());
+    double min = MIN(MIN(v.r(), v.g()), v.b());
     double chroma = max - min;
     
-    hue() = 0.0;
-    if (v.r() > v.g() && v.r() > v.b()) // Red is max
-        hue() = fmod((v.g() - v.b()) / chroma, 6.0);
-    if (v.g() > v.r() && v.g() > v.b()) // Green is max
-        hue() = (v.b() - v.r()) + 2.0;
-    if (v.b() > v.r() && v.b() > v.g()) // Blue is max
-        hue() = (v.b() - v.g()) + 4.0;
-    
-    hue() /= 6.0;
-    
+    printf("rgb %.5lf; %.5lf; %.5lf\n", v.r(), v.g(), v.b());
+    printf("Mmc %.5lf; %.5lf; %.5lf\n", max, min, chroma);
+
     // https://en.wikipedia.org/wiki/HSL_and_HSV#Lightness
-    lightness() = (v.r() + v.g() + v.b()) / 3.0;
+    lightness() = (max + min) / 2.0; //(v.r() + v.g() + v.b()) / 3.0;
     
     // https://en.wikipedia.org/wiki/HSL_and_HSV#Saturation
-    if (lightness() <= 0.5)
-        saturation() = chroma / (2.0 * lightness());
+    if (double_eq(chroma, 0.0))
+        saturation() = 0.0;
     else
-        saturation() = chroma / (2.0 - 2.0 * lightness());
+        saturation() = chroma / (1.0 - fabs(2.0 * lightness() - 1.0));
+    
+    hue() = 0.0;
+    if (!double_eq(saturation(), 0.0)) {
+        if (double_eq(chroma, 0.0))
+            hue() = 0.0;
+        else if (v.r() > v.g() && v.r() > v.b()) // Red is max
+            hue() = fmod((v.g() - v.b()) / chroma, 6.0);
+        else if (v.g() > v.r() && v.g() > v.b()) // Green is max
+            hue() = (v.b() - v.r()) + 2.0;
+        else if (v.b() > v.r() && v.b() > v.g()) // Blue is max
+            hue() = (v.b() - v.g()) + 4.0;
+        
+        hue() /= 6.0;
+    }
+    
+    alpha() = v.alpha();
+    printf("hsl %.5lf; %.5lf; %.5lf\n", x, saturation(), z);
 }
 
 // HSB -> RGB
@@ -125,7 +142,7 @@ RGB::RGB(HSB v) {
     // https://en.wikipedia.org/wiki/HSL_and_HSV#From_HSV
     
     double c = v.brightness() * v.saturation();
-    double hprime = v.hue() / 6.0;
+    double hprime = v.hue() * 6.0;
     double x = c * (1.0 - fabs(fmod(hprime, 2.0) - 1.0));
 
     if (0 <= hprime && hprime < 1) {
@@ -154,6 +171,8 @@ RGB::RGB(HSB v) {
     r() += m;
     g() += m;
     b() += m;
+    
+    alpha() = v.alpha();
 }
 // RGB -> HSB
 HSB::HSB(RGB v) {
@@ -179,7 +198,12 @@ HSB::HSB(RGB v) {
     brightness() = max;
     
     // https://en.wikipedia.org/wiki/HSL_and_HSV#Saturation
-    saturation() = chroma / brightness();
+    if (double_eq(chroma, 0.0))
+        saturation() = 0.0;
+    else
+        saturation() = chroma / brightness();
+    
+    alpha() = v.alpha();
 }
 
 static double rgb_linear_to_standard(double x) {
@@ -205,6 +229,8 @@ RGB::RGB(XYZ v) {
     r() = rgb_linear_to_standard(r());
     g() = rgb_linear_to_standard(g());
     b() = rgb_linear_to_standard(b());
+    
+    alpha() = v.alpha();
 }
 // RGB -> XYZ
 XYZ::XYZ(RGB v) {
@@ -217,6 +243,8 @@ XYZ::XYZ(RGB v) {
     x = 0.1805 * v.b()  +  0.3576 * v.g()  +  0.4124 * v.r();
     y = 0.0722 * v.b()  +  0.7152 * v.g()  +  0.2126 * v.r();
     z = 0.9505 * v.b()  +  0.1192 * v.g()  +  0.0193 * v.r();
+    
+    alpha() = v.alpha();
 }
 
 static double f(double t) {
@@ -237,6 +265,8 @@ LAB::LAB(XYZ v) {
     lightness() = 116.0 * f(v.y / Yn) - 16.0;
     astar() = 500.0 * (f(v.x / Xn) - f(v.y / Yn));
     bstar() = 200.0 * (f(v.y / Yn) - f(v.z / Zn));
+    
+    alpha() = v.alpha();
 }
 // LAB -> XYZ
 XYZ::XYZ(LAB v) {
@@ -247,6 +277,8 @@ XYZ::XYZ(LAB v) {
             + (1.0 / 500.0) * v.astar());
     z = Zn * finv((1.0 / 116.0) * (v.lightness() + 16.0)
             + (1.0 / 200.0) * v.bstar());
+    
+    alpha() = v.alpha();
 }
 
 // LCH -> LAB
@@ -287,6 +319,8 @@ XYZ::XYZ(CIECAM v) {
         CIECAM_YB, CIECAM_LA,
         CIECAM_F, CIECAM_C, CIECAM_NC
     );
+    
+    alpha() = v.alpha();
 }
 // XYZ -> CIECAM
 CIECAM::CIECAM(XYZ v) {
@@ -299,6 +333,8 @@ CIECAM::CIECAM(XYZ v) {
         CIECAM_YB, CIECAM_LA,
         CIECAM_F, CIECAM_C, CIECAM_NC
     );
+    
+    alpha() = v.alpha();
 }
 
 CIECAM::Extras CIECAM::extras() {

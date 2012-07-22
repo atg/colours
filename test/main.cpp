@@ -24,20 +24,24 @@ static void test(const char* FromName, const char* ToName) {
                     To c4 = To(c3);
                     
                     if (c1 != c3) {
-                        printf("Not equal %s{%.5lf, %.5lf, %.5lf, %.5lf} != %s{%.5lf, %.5lf, %.5lf, %.5lf}\n",
+                        printf("A: %ld - %ld - %ld - %ld  --  Not equal %s -> %s {%.5lf, %.5lf, %.5lf, %.5lf} -> {%.5lf, %.5lf, %.5lf, %.5lf} -> {%.5lf, %.5lf, %.5lf, %.5lf}\n",
+                            x, y, z, a,
                             FromName,
+                            ToName,
                             c1.x, c1.y, c1.z, c1.a,
-                            FromName,
+                            c2.x, c2.y, c2.z, c2.a,
                             c3.x, c3.y, c3.z, c3.a
                         );
                         return;
                     }
                     
                     if (c2 != c4) {
-                        printf("Not equal %s{%.5lf, %.5lf, %.5lf, %.5lf} != %s{%.5lf, %.5lf, %.5lf, %.5lf}\n",
+                        printf("B: %ld - %ld - %ld - %ld  --  Not equal %s -> %s {%.5lf, %.5lf, %.5lf, %.5lf} -> {%.5lf, %.5lf, %.5lf, %.5lf} -> {%.5lf, %.5lf, %.5lf, %.5lf}\n",
+                            x, y, z, a,
                             ToName,
+                            FromName,
                             c2.x, c2.y, c2.z, c2.a,
-                            ToName,
+                            c3.x, c3.y, c3.z, c3.a,
                             c4.x, c4.y, c4.z, c4.a
                         );
                         return;
@@ -47,6 +51,7 @@ static void test(const char* FromName, const char* ToName) {
         }
     }
     
+    printf("Success %s -> %s\n", FromName, ToName);
 }
 
 #define DO_TEST(a, b) test<colour::a, colour::b>(#a, #b)
@@ -54,7 +59,7 @@ static void test(const char* FromName, const char* ToName) {
 int main(int argc, char *argv[]) {
     
     colour::LAB v = colour::LAB(colour::RGB(0.5, 0.0, 1.0));
-    printf("%lf %lf %lf", v.x, v.y, v.z);
+    printf("%lf %lf %lf\n", v.x, v.y, v.z);
     
     DO_TEST(RGB, HSL);
     DO_TEST(RGB, HSB);

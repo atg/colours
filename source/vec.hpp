@@ -17,7 +17,7 @@ struct Vec4 {
 };
 
 static bool double_eq(double a, double b) {
-    return fabs(a - b) < 0.00001;
+    return fabs(a - b) < 0.0001;
 }
 
 static bool operator == (Vec4 v, Vec4 w) {
